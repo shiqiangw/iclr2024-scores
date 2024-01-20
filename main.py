@@ -23,18 +23,36 @@ all_data = []
 for s in tqdm(submissions):
     if s.forum not in scores_dict:
         continue
+
     title = s.content['title']['value']
+
     if 'primary_area' in s.content:
         area = s.content['primary_area']['value']
     else:
         area = ''
+
+    if 'venue' in s.content:
+        decision = s.content['venue']['value']
+    else:
+        decision = ''
+    if 'oral' in decision.lower():
+        decision = 'Oral'
+    elif 'spotlight' in decision.lower():
+        decision = 'Spotlight'
+    elif 'poster' in decision.lower():
+        decision = 'Poster'
+    elif 'submitted' in decision.lower() or 'rejected' in decision.lower():
+        decision = 'Rejected'
+    elif 'withdrawn' in decision.lower():
+        decision = 'Withdrawn'
+
     scores = scores_dict[s.forum]
     avg_score = np.mean(scores)
     std_score = np.std(scores)
-    all_data.append([ title, str(avg_score), str(std_score), ';'.join([str(i) for i in scores]), area])
+    all_data.append([ title, str(avg_score), str(std_score), ';'.join([str(i) for i in scores]), area, decision])
 
 
-df = pd.DataFrame(all_data, columns=['Title', 'Average Score', 'Standard Deviation', 'Individual Scores', 'Author-defined Area'])
+df = pd.DataFrame(all_data, columns=['Title', 'Average Score', 'Standard Deviation', 'Individual Scores', 'Author-defined Area', 'Decision'])
 df = df.sort_values(by=['Average Score'], ascending=False, ignore_index=True)
 df.index = np.arange(1, len(df)+1)
 df.to_csv('output.csv', index='True')
